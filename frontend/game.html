@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Game Details</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    color: white;
+    overflow: hidden;
+}
+
+/* video background */
+video {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+/* layout */
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* 3D card */
+.card {
+    display: flex;
+    gap: 30px;
+    background: rgba(0,0,0,0.7);
+    padding: 30px;
+    border-radius: 20px;
+    transform-style: preserve-3d;
+    transition: transform 0.1s;
+}
+
+/* image */
+.card img {
+    width: 300px;
+    border-radius: 15px;
+}
+
+/* text */
+.info {
+    max-width: 400px;
+}
+
+.info h1 {
+    font-size: 35px;
+}
+
+.rating {
+    color: gold;
+    margin-top: 10px;
+}
+
+/* button */
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: cyan;
+    border: none;
+    cursor: pointer;
+}
+
+/* modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal iframe {
+    width: 80%;
+    height: 60%;
+}
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+/* back button */
+.back {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+/* footer */
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    background: black;
+    padding: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<video id="bgVideo" autoplay muted loop></video>
+
+<button class="back" onclick="goBack()">⬅ Back</button>
+
+<div class="wrapper">
+    <div class="card" id="card"></div>
+</div>
+
+<div class="modal" id="modal">
+    <span class="close" onclick="closeModal()">✖</span>
+    <iframe id="trailer"></iframe>
+</div>
+
+<footer>
+Help: ravi@gmail.com | Privacy Policy
+</footer>
+
+<script>
+function goBack() {
+    window.location.href = "index.html";
+}
+
+const id = new URLSearchParams(window.location.search).get("id");
+
+/* fetch game */
+fetch(`http://localhost:5000/games/${id}`)
+.then(res => res.json())
+.then(game => {
+
+    document.getElementById("bgVideo").src = game.video;
+
+    document.getElementById("card").innerHTML = `
+        <img src="${game.image}">
+        <div class="info">
+            <h1>${game.name}</h1>
+            <p>${game.description}</p>
+            <div class="rating">${game.rating}</div>
+            <button onclick="openModal('${game.trailer}')">▶ Watch Trailer</button>
+        </div>
+    `;
+});
+
+/* 3D tilt effect */
+const card = document.getElementById("card");
+
+document.addEventListener("mousemove", (e) => {
+    let x = (window.innerWidth / 2 - e.pageX) / 25;
+    let y = (window.innerHeight / 2 - e.pageY) / 25;
+    card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
+});
+
+/* modal */
+function openModal(url) {
+    document.getElementById("modal").style.display = "flex";
+    document.getElementById("trailer").src = url;
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("trailer").src = "";
+}
+</script>
+
+</body>
+</html>
