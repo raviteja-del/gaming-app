@@ -20,6 +20,15 @@ video {
     z-index: -1;
 }
 
+/* overlay (dark effect) */
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: -1;
+}
+
 /* layout */
 .wrapper {
     display: flex;
@@ -36,7 +45,12 @@ video {
     padding: 30px;
     border-radius: 20px;
     transform-style: preserve-3d;
-    transition: transform 0.1s;
+    transition: transform 0.1s, box-shadow 0.3s;
+}
+
+/* glow on hover */
+.card:hover {
+    box-shadow: 0 0 30px cyan;
 }
 
 /* image */
@@ -54,6 +68,7 @@ video {
     font-size: 35px;
 }
 
+/* rating */
 .rating {
     color: gold;
     margin-top: 10px;
@@ -66,6 +81,12 @@ button {
     background: cyan;
     border: none;
     cursor: pointer;
+}
+
+/* loading */
+.loading {
+    text-align: center;
+    font-size: 22px;
 }
 
 /* modal */
@@ -117,16 +138,17 @@ footer {
 <body>
 
 <video id="bgVideo" autoplay muted loop></video>
+<div class="overlay"></div>
 
 <button class="back" onclick="goBack()">⬅ Back</button>
 
 <div class="wrapper">
-    <div class="card" id="card"></div>
+    <div class="card loading" id="card">Loading game...</div>
 </div>
 
 <div class="modal" id="modal">
     <span class="close" onclick="closeModal()">✖</span>
-    <iframe id="trailer"></iframe>
+    <iframe id="trailer" allowfullscreen></iframe>
 </div>
 
 <footer>
@@ -140,30 +162,44 @@ function goBack() {
 
 const id = new URLSearchParams(window.location.search).get("id");
 
-/* fetch game */
-fetch(`http://localhost:5000/games/${id}`)
+// 🔥 IMPORTANT: Use EC2 IP (NOT localhost)
+const API_URL = `http://44.204.137.194:5000/games/${id}`;
+
+fetch(API_URL)
 .then(res => res.json())
 .then(game => {
 
-    document.getElementById("bgVideo").src = game.video;
+    // fallback video
+    const video = document.getElementById("bgVideo");
+    video.src = game.video || "";
 
-    document.getElementById("card").innerHTML = `
-        <img src="${game.image}">
+    const card = document.getElementById("card");
+
+    card.classList.remove("loading");
+
+    card.innerHTML = `
+        <img src="${game.image}" alt="${game.name}">
         <div class="info">
             <h1>${game.name}</h1>
             <p>${game.description}</p>
-            <div class="rating">${game.rating}</div>
+            <div class="rating">⭐ ${game.rating}</div>
             <button onclick="openModal('${game.trailer}')">▶ Watch Trailer</button>
         </div>
     `;
+})
+
+.catch(err => {
+    document.getElementById("card").innerHTML = "⚠ Failed to load game data";
+    console.error(err);
 });
 
 /* 3D tilt effect */
-const card = document.getElementById("card");
-
 document.addEventListener("mousemove", (e) => {
+    const card = document.getElementById("card");
+
     let x = (window.innerWidth / 2 - e.pageX) / 25;
     let y = (window.innerHeight / 2 - e.pageY) / 25;
+
     card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
 });
 

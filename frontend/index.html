@@ -16,6 +16,7 @@ header {
     text-align: center;
     padding: 20px;
     font-size: 2rem;
+    letter-spacing: 2px;
 }
 
 /* grid */
@@ -33,12 +34,14 @@ header {
     overflow: hidden;
     cursor: pointer;
     transform-style: preserve-3d;
-    transition: transform 0.3s;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
 }
 
 /* 3D hover effect */
 .card:hover {
     transform: rotateY(10deg) scale(1.05);
+    box-shadow: 0 0 25px cyan;
 }
 
 /* image */
@@ -46,6 +49,12 @@ header {
     width: 100%;
     height: 180px;
     object-fit: cover;
+    transition: transform 0.5s;
+}
+
+/* zoom image on hover */
+.card:hover img {
+    transform: scale(1.1);
 }
 
 /* game name */
@@ -59,6 +68,14 @@ header {
 /* 3D text effect */
 .game-name:hover {
     transform: perspective(500px) rotateX(15deg) scale(1.1);
+    color: cyan;
+}
+
+/* loading */
+.loading {
+    text-align: center;
+    font-size: 20px;
+    padding: 40px;
     color: cyan;
 }
 
@@ -77,6 +94,7 @@ footer {
 
 <header>🎮 Gaming Zone</header>
 
+<div class="loading" id="loading">Loading games...</div>
 <div class="container" id="games"></div>
 
 <footer>
@@ -84,9 +102,16 @@ Help: ravi@gmail.com | Privacy Policy
 </footer>
 
 <script>
-fetch('http://localhost:5000/games')
+
+// 🔥 IMPORTANT FIX: use EC2 public IP instead of localhost
+const API_URL = "http://44.204.137.194:5000/games";
+
+fetch(API_URL)
 .then(res => res.json())
 .then(data => {
+
+    document.getElementById("loading").style.display = "none";
+
     const container = document.getElementById("games");
 
     data.forEach(game => {
@@ -94,7 +119,7 @@ fetch('http://localhost:5000/games')
         card.className = "card";
 
         card.innerHTML = `
-            <img src="${game.image}">
+            <img src="${game.image}" alt="${game.name}">
             <div class="game-name">${game.name}</div>
         `;
 
@@ -104,7 +129,13 @@ fetch('http://localhost:5000/games')
 
         container.appendChild(card);
     });
+})
+
+.catch(err => {
+    document.getElementById("loading").innerText = "⚠ Failed to load games";
+    console.error(err);
 });
+
 </script>
 
 </body>
