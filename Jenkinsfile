@@ -3,6 +3,12 @@ pipeline {
 
     stages {
 
+        stage('Pull Latest Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/raviteja-del/gaming-app.git'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t gaming-app .'
@@ -16,7 +22,7 @@ pipeline {
             }
         }
 
-        stage('Run Container') {
+        stage('Run New Container') {
             steps {
                 sh 'docker run -d -p 5000:5000 --name gaming gaming-app'
             }
@@ -24,8 +30,11 @@ pipeline {
 
         stage('Deploy Frontend') {
             steps {
-                sh 'sudo cp -r frontend/* /usr/share/nginx/html/'
-                sh 'sudo systemctl restart nginx'
+                sh '''
+                sudo rm -rf /usr/share/nginx/html/*
+                sudo cp -r frontend/* /usr/share/nginx/html/
+                sudo systemctl restart nginx
+                '''
             }
         }
     }
