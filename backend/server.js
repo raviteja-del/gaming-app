@@ -1,9 +1,32 @@
+const fs = require('fs');
+const path = require('path');
+const morgan = require('morgan');
 const express = require('express');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
 
+/* ✅ LOGGING SETUP (ADD HERE) */
+const logDir = path.join(__dirname, 'logs');
+
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir);
+}
+
+const accessLogStream = fs.createWriteStream(
+    path.join(logDir, 'access.log'),
+    { flags: 'a' }
+);
+
+// log to file
+app.use(morgan('combined', { stream: accessLogStream }));
+
+// log to console
+app.use(morgan('dev'));
+
+
+/* GAME DATA */
 const games = [
     {
         id: 1,
